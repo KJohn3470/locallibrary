@@ -90,10 +90,6 @@ WSGI_APPLICATION = 'locallibrary_config.wsgi.application'
 #     }
 # }
 
-import environ
-
-env = environ.Env()
-
 DATABASES = {
     "default": env.db(default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}")
 }
@@ -148,7 +144,6 @@ MAILERS = {
 # Daphne
 ASGI_APPLICATION = "locallibrary_config.asgi.application"
 
-ASGI_APPLICATION = "locallibrary_config.asgi.application"
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels_redis.core.RedisChannelLayer",
