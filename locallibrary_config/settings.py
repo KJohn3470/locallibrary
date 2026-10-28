@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'ninja',
+    'projects',
+    'tasks',
 ]
 
 MIDDLEWARE = [
