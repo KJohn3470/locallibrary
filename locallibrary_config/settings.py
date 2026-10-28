@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'ninja',
     'projects',
     'tasks',
+    'accounts',
 ]
 
 MIDDLEWARE = [
