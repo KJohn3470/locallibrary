@@ -67,7 +67,7 @@ def update_task(request, project_id: Path[int], task_id: int, payload: PatchDict
     return task
 
 
-@router.post("/{task_id}/status", summary="Change Status",
+@router.post("/{task_id}/status", response=TaskOut, summary="Change Status",
     description=(
         "Allowed moves:\n\n"
         "- `todo` to `in_progress`\n"
