@@ -43,3 +43,12 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += [
     path('accounts/', include('allauth.urls')),
 ]
+
+# locallibrary_config/urls.py
+# (after the existing blocks)
+# Mount the Django Ninja API
+from .api import api
+
+urlpatterns += [
+    path('api/', api.urls),
+]

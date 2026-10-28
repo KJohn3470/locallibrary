@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'chat',
     'allauth',
     'allauth.account',
+    'ninja',
 ]
 
 MIDDLEWARE = [
