@@ -4,7 +4,8 @@
   <h1>Title: {{ book.title }}</h1>
 
   <p><strong>Author:</strong> 
-    <a href="{{ author.get_absolute_url }}">{{ author }}</a>{% if not forloop.last %}, {% endif %}
+    {% for author in book.authors.all %}
+      <a href="{{ author.get_absolute_url }}">{{ author }}</a>{% if not forloop.last %}, {% endif %}
     {% empty %}
       No authors listed.
     {% endfor %}
