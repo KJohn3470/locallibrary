@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 # Create your views here.
 from .models import Book, Author, BookInstance, Genre
@@ -15,6 +17,11 @@ def index(request):
 
     # The 'all()' is implied by default.
     num_authors = Author.objects.count()
+    
+    # Number of visits to this view, as counted in the session variable.
+    num_visits = request.session.get('num_visits', 0)
+    num_visits += 1
+    request.session['num_visits'] = num_visits
     
     num_genres = Genre.objects.filter().count()
     num_books_with_the = Book.objects.filter(title__icontains='the').count()
@@ -45,3 +52,25 @@ class AuthorListView(generic.ListView):
     
 class AuthorDetailView(generic.DetailView):
     model = Author
+    
+class LoanedBooksByUserListView(LoginRequiredMixin,generic.ListView):
+    """Generic class-based view listing books on loan to current user."""
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = 10
+
+    def get_queryset(self):
+        return (
+            BookInstance.objects.filter(borrower=self.request.user)
+            .filter(status__exact='o')
+            .order_by('due_back')
+        )
+
+class LoanedBooksAllListView(PermissionRequiredMixin, generic.ListView):
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_all.html'
+    context_object_name = 'bookinstance_list'
+    permission_required = 'catalog.can_mark_returned'
+
+    def get_queryset(self):
+        return BookInstance.objects.filter(status__exact='o').order_by('due_back')
