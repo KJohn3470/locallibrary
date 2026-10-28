@@ -9,7 +9,8 @@ from ninja.errors import HttpError
 from .schemas import RefreshIn, SignupIn, TokenIn, TokenOut, UserOut
 from .tokens import create_token_pair, decode_token
 
-router = Router(tags=["auth"], auth=None)
+router = Router(tags=["auth"], auth=None)  # shared by v1 and v2
+tokens = Router(tags=["auth"], auth=None)  # v1 only
 
 
 @router.post("/signup", response={201: UserOut})
@@ -24,16 +25,18 @@ def signup(request, payload: SignupIn):
     return Status(201, user)
 
 
-@router.post("/token", response=TokenOut)
+@tokens.post("/token", response=TokenOut, deprecated=True)
 def obtain_token(request, payload: TokenIn):
+    """Use `POST /taskflow/api/v2/auth/token` instead."""
     user = authenticate(username=payload.username, password=payload.password)
     if user is None:
         raise HttpError(401, "Invalid username or password")
     return create_token_pair(user.id)
 
 
-@router.post("/refresh", response=TokenOut)
+@tokens.post("/refresh", response=TokenOut, deprecated=True)
 def refresh_token(request, payload: RefreshIn):
+    """Use `POST /taskflow/api/v2/auth/refresh` instead."""
     claims = decode_token(payload.refresh, "refresh")
     if claims is None or not User.objects.filter(id=claims["sub"], is_active=True).exists():
         raise HttpError(401, "Invalid or expired refresh token")

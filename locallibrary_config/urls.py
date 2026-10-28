@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.urls import include
-from taskflow.api import api as taskflow_api
+from taskflow.api import api as taskflow_api, api_v2 as taskflow_api_v2
 
 
 urlpatterns = [
@@ -57,5 +57,6 @@ urlpatterns += [
 ]
 
 urlpatterns += [
+    path('taskflow/api/v2/', taskflow_api_v2.urls),
     path('taskflow/api/', taskflow_api.urls),
 ]

@@ -36,6 +36,7 @@ def list_tasks(
     filters: Query[TaskFilter],
     ordering: TaskOrdering = "created_at",
 ):
+    """List the tasks of a project, 20 per page. Filters combine with AND."""
     project = get_project_or_404(request.auth, project_id)
     tasks = filters.filter(project.tasks.select_related("assignee").prefetch_related("labels"))
     return tasks.order_by(ordering, "id")
@@ -68,6 +69,15 @@ def update_task(request, project_id: Path[int], task_id: int, payload: PatchDict
 
 @router.post("/{task_id}/status", response=TaskOut)
 def change_status(request, project_id: Path[int], task_id: int, payload: StatusIn):
+    """
+    Allowed moves:
+
+    - `todo` to `in_progress`
+    - `in_progress` to `todo` or `done`
+    - `done` to `in_progress`
+
+    Any other move returns **409 Conflict**.
+    """
     task = get_task_or_404(request.auth, project_id, task_id)
     if payload.status not in ALLOWED_TRANSITIONS[task.status]:
         raise HttpError(409, f"Can't move a task from {task.status} to {payload.status}")

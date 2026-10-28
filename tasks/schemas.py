@@ -54,8 +54,8 @@ class TaskUpdate(ModelSchema):
 
 
 class TaskIn(TaskUpdate):
-    assignee_id: int | None = None
-    label_ids: list[int] = []
+    assignee_id: int | None = Field(None, description="A member of the project", examples=[2])
+    label_ids: list[int] = Field([], description="Labels of the same project", examples=[[1]])
 
     @model_validator(mode="after")
     def urgent_needs_due_date(self):
@@ -98,7 +98,7 @@ class TaskFilter(FilterSchema):
     due_before: Annotated[date | None, FilterLookup("due_date__lt")] = None
     search: Annotated[
         str | None, FilterLookup(["title__icontains", "description__icontains"])
-    ] = None
+    ] = Field(None, description="Text to find in the title or the description")
 
 
 TaskOrdering = Literal[
