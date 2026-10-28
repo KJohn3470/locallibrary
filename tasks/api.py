@@ -69,13 +69,7 @@ def update_task(request, project_id: Path[int], task_id: int, payload: PatchDict
 
 @router.post("/{task_id}/status", response=TaskOut, summary="Change Status",
     description=(
-        "Allowed moves:\n\n"
-        "- `todo` to `in_progress`\n"
-        "- `in_progress` to `todo` or `done`\n"
-        "- `done` to `in_progress`\n\n"
-        "Any other move returns **409 Conflict**."
-    ),
-)
+        'Allowed moves:\n\n- `todo` to `in_progress`\n- `in_progress` to `todo` or `done`\n- `done` to `in_progress`\n\nAny other move returns **409 Conflict**.'),)
 def change_status(request, project_id: Path[int], task_id: int, payload: StatusIn):
     """
     Allowed moves:
