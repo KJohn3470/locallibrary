@@ -58,3 +58,15 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Comment by {self.author} on {self.task}"
+
+class Attachment(models.Model):
+    task = models.ForeignKey(Task, related_name="attachments", on_delete=models.CASCADE)
+    file = models.FileField(upload_to="attachments/%Y/%m/")
+    name = models.CharField(max_length=200)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, related_name="attachments", on_delete=models.CASCADE
+    )
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name

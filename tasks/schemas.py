@@ -1,14 +1,21 @@
 # tasks/schemas.py
-from accounts.schemas import UserOut
+
+from datetime import date
+from pathlib import Path
+
+from typing import Annotated, Literal
 
 from django.contrib.auth.models import User
-from ninja import ModelSchema, Schema
-from pydantic import field_validator, model_validator
+
+from ninja import FilterLookup, FilterSchema, ModelSchema, Schema
+from ninja import FilterLookup, FilterSchema, ModelSchema, Schema, UploadedFile
+from pydantic import AfterValidator, Field, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
+from accounts.schemas import UserOut
 from projects.schemas import LabelOut
 
-from .models import Comment, Priority, Task, TaskStatus
+from .models import Attachment, Comment, Priority, Task, TaskStatus
 
 
 class UserOut(ModelSchema):
@@ -83,3 +90,47 @@ class CommentOut(ModelSchema):
     class Meta:
         model = Comment
         fields = ["id", "body", "created_at"]
+        
+class TaskFilter(FilterSchema):
+    status: Annotated[list[TaskStatus] | None, FilterLookup("status__in")] = None
+    assignee: Annotated[str | None, FilterLookup("assignee__username")] = None
+    label: Annotated[str | None, FilterLookup("labels__name")] = None
+    due_before: Annotated[date | None, FilterLookup("due_date__lt")] = None
+    search: Annotated[
+        str | None, FilterLookup(["title__icontains", "description__icontains"])
+    ] = None
+
+
+TaskOrdering = Literal[
+    "created_at", "-created_at", "due_date", "-due_date", "priority", "-priority"
+]
+
+MAX_UPLOAD_SIZE = 5 * 1024 * 1024  # 5 MB
+ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg", ".txt", ".md"}
+
+
+def check_upload(file: UploadedFile) -> UploadedFile:
+    if file.size > MAX_UPLOAD_SIZE:
+        raise PydanticCustomError("file_too_large", "Files can be at most 5 MB")
+    if Path(file.name).suffix.lower() not in ALLOWED_EXTENSIONS:
+        raise PydanticCustomError("file_type", "Only PDF, PNG, JPEG and text files are allowed")
+    return file
+
+
+AttachmentFile = Annotated[UploadedFile, AfterValidator(check_upload)]
+
+
+class AttachmentIn(Schema):
+    name: str = Field("", max_length=200)
+    
+class AttachmentOut(ModelSchema):
+    uploaded_by: UserOut
+    url: str
+
+    class Meta:
+        model = Attachment
+        fields = ["id", "name", "uploaded_at"]
+
+    @staticmethod
+    def resolve_url(obj, context):
+        return context["request"].build_absolute_uri(obj.file.url)
